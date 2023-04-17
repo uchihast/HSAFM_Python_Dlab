@@ -124,23 +124,24 @@ figure=None
 axes=None
 
 def save_params(type, name, variable):
-        with open("FalconViewer.parm", "r+") as file:
-            lines = file.readlines()
-            file.seek(0)
-            for line in lines:
-                data = line.strip().split(",")
-                if data[0] == type and data[1] == name :
-                    if type == "panel":
-                        # 一致する行が見つかった場合は、3, 4, 5, 6列目に値を書き込む
-                        file.write(f"{type},{name},{config.panel_left},{config.panel_top},{config.panel_width},{config.panel_height}\n")
-                    elif type =="param" :
-                        file.write(f"{type},{name},{variable}\n")
+    with open("FalconViewer.parm", "r+") as file:
+        
+        lines = file.readlines()
+        file.seek(0)
+        for line in lines:
+            data = line.strip().split(",")
+            if data[0] == type and data[1] == name :
+                if type == "panel":
+                    # 一致する行が見つかった場合は、3, 4, 5, 6列目に値を書き込む
+                    file.write(f"{type},{name},{panel_left},{panel_top},{panel_width},{panel_height}\n")
+                elif type =="param" :
+                    file.write(f"{type},{name},{variable}\n")
 
                         
-                else:
-                    # 一致しない場合は、そのまま書き込む
-                    file.write(line)
-            file.truncate()
+            else:
+                # 一致しない場合は、そのまま書き込む
+                file.write(line)
+        file.truncate()
 
 def get_savedparam(type, name):
     with open("FalconViewer.parm", "r") as file:

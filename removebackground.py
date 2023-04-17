@@ -25,6 +25,7 @@ import copy
 import numpy as np
 import cv2
 from scipy import ndimage
+from scipy.stats import mode
 import matplotlib.pyplot as plt
 import sys
 import random
@@ -140,26 +141,30 @@ class RemovebackgroundWindow(QtWidgets.QWidget):
         self.mediandiff_radio_button = QRadioButton("Median Difference")
         self.mediandiff_radio_button.toggled.connect(self.update_rb_line_type)
 
-        self.facet_radio_button = QRadioButton("Facet Level")
-        self.facet_radio_button.toggled.connect(self.update_rb_line_type)
+        self.mode_radio_button = QRadioButton("Mode")
+        self.mode_radio_button.toggled.connect(self.update_rb_line_type)
 
-        self.histogram_radio_button = QRadioButton("Histogram")
-        self.histogram_radio_button.toggled.connect(self.update_rb_line_type)
+
+        #self.facet_radio_button = QRadioButton("Facet Level")
+        #self.facet_radio_button.toggled.connect(self.update_rb_line_type)
+
+        #self.histogram_radio_button = QRadioButton("Histogram")
+        #self.histogram_radio_button.toggled.connect(self.update_rb_line_type)
 
        # Create a slider widget
-        self.histogram_slider = QSlider(Qt.Horizontal)
-        self.histogram_slider.setMinimum(0)
-        self.histogram_slider.setMaximum(100)
-        self.histogram_slider.setValue(config.rb_histogram_slider_value)  # Set initial value
-        self.histogram_slider.setTickInterval(10)
-        self.histogram_slider.setTickPosition(QSlider.TicksBelow)
-        self.histogram_slider.valueChanged.connect(self.update_histogram_slider_value)
+        #self.histogram_slider = QSlider(Qt.Horizontal)
+        #self.histogram_slider.setMinimum(0)
+        #self.histogram_slider.setMaximum(100)
+        #self.histogram_slider.setValue(config.rb_histogram_slider_value)  # Set initial value
+        #self.histogram_slider.setTickInterval(10)
+        #self.histogram_slider.setTickPosition(QSlider.TicksBelow)
+        #.histogram_slider.valueChanged.connect(self.update_histogram_slider_value)
         # Add the slider to the layout, but hide it initially
-        self.line_by_line_layout.addWidget(self.histogram_slider)
-        self.histogram_slider.hide()
+        #self.line_by_line_layout.addWidget(self.histogram_slider)
+        #self.histogram_slider.hide()
 
         # Show the slider when the "Histogram" radio button is selected
-        self.histogram_radio_button.toggled.connect(self.histogram_slider.setVisible)
+        #self.histogram_radio_button.toggled.connect(self.histogram_slider.setVisible)
 
         
         if config.rb_line_type == 0:
@@ -171,15 +176,18 @@ class RemovebackgroundWindow(QtWidgets.QWidget):
         elif config.rb_line_type == 3:
             self.mediandiff_radio_button.setChecked(True)
         elif config.rb_line_type == 4:
-            self.facet_radio_button.setChecked(True)
-        elif config.rb_line_type == 5:
-            self.histogram_radio_button.setChecked(True)
+            self.mode_radio_button.setChecked(True)    
+        #elif config.rb_line_type == 5:
+        #    self.facet_radio_button.setChecked(True)
+        #elif config.rb_line_type == 6:
+         #   self.histogram_radio_button.setChecked(True)
         
         
         self.line_by_line_layout.addWidget(self.median_radio_button)
         self.line_by_line_layout.addWidget(self.mediandiff_radio_button)
-        self.line_by_line_layout.addWidget(self.facet_radio_button)
-        self.line_by_line_layout.addWidget(self.histogram_radio_button)
+        self.line_by_line_layout.addWidget(self.mode_radio_button)
+        #self.line_by_line_layout.addWidget(self.facet_radio_button)
+        #self.line_by_line_layout.addWidget(self.histogram_radio_button)
         
 
         self.line_by_line_group_box.setLayout(self.line_by_line_layout)
@@ -202,10 +210,12 @@ class RemovebackgroundWindow(QtWidgets.QWidget):
             config.rb_line_type = 2
         elif self.mediandiff_radio_button.isChecked():
             config.rb_line_type = 3
-        elif self.facet_radio_button.isChecked():
+        elif self.mode_radio_button.isChecked():
             config.rb_line_type = 4
-        elif self.histogram_radio_button.isChecked():
-            config.rb_line_type = 5
+       # elif self.facet_radio_button.isChecked():
+       #     config.rb_line_type = 4
+       # elif self.histogram_radio_button.isChecked():
+       #     config.rb_line_type = 5
 
      #test
         disp = ImD.ImageDisplay()
@@ -292,7 +302,6 @@ def mediandiff_line(tempdata, inline=True):
         New = copy.deepcopy(data)
         return D
  
-
     # DataIOオブジェクトに変換する
     # data = px.io.data_io.DataIO("array")
     # # データを設定する
@@ -301,8 +310,17 @@ def mediandiff_line(tempdata, inline=True):
     # # データの前処理
     # data = px.Processing.process(data, process_name='Gridding', verbose=False)
 
-    return fitdata
+    return fitdata_tiled 
     
+def mode_line(tempdata):
+
+     # 二次元配列arraydataの各行ごとに、各列のデータの最頻値を二次元配列にして戻す関数。
+    fitdata = np.zeros((tempdata.shape[0], tempdata.shape[1]))
+    mode_all = mode(tempdata, axis=None)  # 全体の最頻値を計算する
+    for i, row in enumerate(tempdata):
+        row_mode = mode(row)  # 各行の最頻値を計算する
+        fitdata[i] = np.full(tempdata.shape[1], row_mode.mode)  # 最頻値を各列に入れる
+    return fitdata
    
 def normal_vectors(image, sx, sy):
     normal = np.zeros((*image.shape, 3), dtype=float)
@@ -386,10 +404,13 @@ def Removebackrgoud_Line():
             fitdata = median_line(tempdata)
         
         elif config.rb_line_type == 3: # median diffference
-            fitdata = mediandiff_line(tempdata)
 
-        elif config.rb_line_type == 4: # facet leveling
-            fitdata = facet_leveling(tempdata, 20, 1/20)
+            fitdata_pre = mediandiff_line(tempdata) # 各行ごとの最頻値を計算する
+            fitdata = np.tile(fitdata_pre, (1, tempdata.shape[1]//fitdata.shape[1]+1))[:, :tempdata.shape[1]] # 水平方向に繰り返し
+            
+        elif config.rb_line_type == 4: # mode
+
+            fitdata = mode_line(tempdata)
 
 
         tempdata -= fitdata

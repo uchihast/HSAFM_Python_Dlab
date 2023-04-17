@@ -44,6 +44,7 @@ import removebackground as rb
 import noisefilter as nf
 
 
+
 class MainWindow(QMainWindow):
     # Brightness.
     dirname = ''

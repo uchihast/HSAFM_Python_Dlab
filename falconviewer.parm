@@ -1,5 +1,5 @@
-panel,FalconPy Main,39,437,961,487
-panel,img1ch,10,10,10,10
-panel,Remove Background,50,50,10,20
+panel,FalconPy Main,20,640,961,487
+panel,img1ch,10,38,504,448
+panel,Remove Background,543,53,290,324
 panel,Noise Filters,50,50,10,20ß
-param,initialdata_folder,/Users/uchihashitakayuki/Desktop/Koga-G
+param,initialdata_folder,/Volumes/Lacie 16TB/AFM Data
