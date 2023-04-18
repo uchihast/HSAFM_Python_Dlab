@@ -1,5 +1,5 @@
-panel,FalconPy Main,20,640,961,487
-panel,img1ch,10,38,504,448
-panel,Remove Background,543,53,290,324
-panel,Noise Filters,50,50,10,20ß
-param,initialdata_folder,/Volumes/Lacie 16TB/AFM Data
+panel,FalconPy Main,31,616,961,487
+panel,img1ch,10,122,504,448
+panel,Remove Background,593,391,290,424
+panel,Noise Filters,593,94,359,268
+param,initialdata_folder,/Volumes/Lacie 16TB/AFM Data/MS ring/20221220

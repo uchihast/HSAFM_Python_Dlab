@@ -97,23 +97,26 @@ pbSpeed = 1
 data_folder = "/Volumes/Lacie 16TB/AFM Data"
 
 # Remove bacgorund parameters
-rb_plane_auto = 0
+rb_plane_type = 0
 rb_plane_order = 1
-rb_line_auto = 0
+rb_rolling_size = 10
 rb_line_order = 1
 rb_line_type = 0
 rb_line_direction = "Horizontal"
-rb_histogram_slider_value = 0
+rb_threshold_type = "Manual"
+rb_threshold = 30
 
 # Noise Filter parameters
-noisefilter_auto = 0
-noisefilter_type = "Average"    
-kernel_size = 3
-sigma_x = 0.1
-sigma_y = 0.1
-sigma_d = 1 
-sigma_space = 50
-sigma_color = 75
+nf_remove_scar_auto = 0
+nf_scar_thresh = 0.01
+nf_auto = 0
+nf_type = "Average"    
+nf_kernel_size = 3
+nf_sigma_x = 0.1
+nf_sigma_y = 0.1
+nf_sigma_d = 1 
+nf_sigma_space = 50
+nf_sigma_color = 75
 
 
 lineclose=False

@@ -55,7 +55,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         if config.DispState  == 0:
             return 
         
-        result = self.get_savedparam("panel", "Noise Filters")
+        result = config.get_savedparam("panel", "Noise Filters")
         if result is not None:
           # 一致する行が見つかった場合は、resultを処理する
             config.panel_left, config.panel_top, config.panel_width, config.panel_height = result
@@ -72,11 +72,31 @@ class NoisefilterWindow(QtWidgets.QWidget):
         top =10
         left = 30
 
+         # Checkbox widget
+        self.scar_checkbox = QCheckBox("Scar", self)
+        self.scar_checkbox.setGeometry(QtCore.QRect(left, top, 100, 30))
+        #self.params = NFilerParams() # initialize with default values
+        self.scar_checkbox.setChecked(config.nf_remove_scar_auto)  # all_Filterに依存して初期値を設定
+        self.scar_checkbox.stateChanged.connect(self.on_scar_checkbox_changed)
+
+        # scar thresholod input widget
+        self.scar_thresh_label = QLabel("Threshold:", self)
+        self.scar_thresh_label.setGeometry(QtCore.QRect(left+130, top, 150, 30))
+        self.scar_thresh_spinbox = QDoubleSpinBox(self)
+        self.scar_thresh_spinbox.setGeometry(QtCore.QRect(left+200, top, 50, 30))
+        self.scar_thresh_spinbox.setRange(0.01, 5)
+        self.scar_thresh_spinbox.setSingleStep(0.01)
+        self.scar_thresh_spinbox.setValue(config.nf_scar_thresh)  # kernel_sizeに応じて初期値を設定
+        self.scar_thresh_spinbox.valueChanged.connect(self.update_scar_thresh)
+       
+
+        top += 40
+
         # Checkbox widget
         self.all_checkbox = QCheckBox("Auto", self)
         self.all_checkbox.setGeometry(QtCore.QRect(left, top, 100, 30))
         #self.params = NFilerParams() # initialize with default values
-        self.all_checkbox.setChecked(config.noisefilter_auto)  # all_Filterに依存して初期値を設定
+        self.all_checkbox.setChecked(config.nf_auto)  # all_Filterに依存して初期値を設定
         self.all_checkbox.stateChanged.connect(self.on_all_checkbox_changed)
 
         top += 40
@@ -87,7 +107,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         self.selector = QComboBox(self)
         self.selector.setGeometry(QtCore.QRect(left+110, top, 120, 30))
         self.selector.addItems(["Average", "Gaussian", "Median", "Bilateral", "Destripe"])
-        self.selector.setCurrentText(config.noisefilter_type)  # filter_typeに応じて初期値を設定
+        self.selector.setCurrentText(config.nf_type)  # filter_typeに応じて初期値を設定
         self.selector.currentTextChanged.connect(self.update_filter_type)
         
 
@@ -102,7 +122,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         self.kernel_size_spinbox.setMinimum(3)
         self.kernel_size_spinbox.setMaximum(15)
         self.kernel_size_spinbox.setSingleStep(2)
-        self.kernel_size_spinbox.setValue(config.kernel_size)  # kernel_sizeに応じて初期値を設定
+        self.kernel_size_spinbox.setValue(config.nf_kernel_size)  # kernel_sizeに応じて初期値を設定
         self.kernel_size_spinbox.valueChanged.connect(self.update_kernek_size)
        
         top += 40
@@ -116,7 +136,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         self.sigma_x_spinbox.setMaximum(10)
         self.sigma_x_spinbox.setDecimals(1)
         self.sigma_x_spinbox.setSingleStep(0.1)
-        self.sigma_x_spinbox.setValue(config.sigma_x)
+        self.sigma_x_spinbox.setValue(config.nf_sigma_x)
         self.sigma_x_spinbox.valueChanged.connect(self.update_gaussian_sigma)
         
 
@@ -129,7 +149,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         self.sigma_y_spinbox.setMaximum(10)
         self.sigma_y_spinbox.setDecimals(1)
         self.sigma_y_spinbox.setSingleStep(0.1)
-        self.sigma_y_spinbox.setValue(config.sigma_y)
+        self.sigma_y_spinbox.setValue(config.nf_sigma_y)
         self.sigma_y_spinbox.valueChanged.connect(self.update_gaussian_sigma)
 
          # d widget for Bilateral filter
@@ -172,7 +192,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
         self.sigma_space_spinbox.hide()
 
 
-        if  config.noisefilter_type == "Gaussian":
+        if  config.nf_type == "Gaussian":
             self.sigma_x_label.show()
             self.sigma_x_spinbox.show()
             self.sigma_y_label.show()
@@ -183,7 +203,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
             self.sigma_y_label.hide()
             self.sigma_y_spinbox.hide()
 
-        if  config.noisefilter_type == "Bilateral":
+        if  config.nf_type == "Bilateral":
             self.d_label.show()
             self.d_spinbox.show()
             self.sigma_color_label.show()
@@ -198,64 +218,86 @@ class NoisefilterWindow(QtWidgets.QWidget):
             self.sigma_space_label.hide()
             self.sigma_space_spinbox.hide()
 
-        if config.noisefilter_auto ==1 :
+        if config.nf_auto ==1 :
                
-             self.update_image()
+            disp = ImD.ImageDisplay()
+            disp.DispAryData()
     
+    def update_scar_thresh(self):
+
+        config.nf_scar_thresh = self.scar_thresh_spinbox.value()
+
+        disp = ImD.ImageDisplay()
+        disp.DispAryData()
+
+
     def update_bilateral_filter(self):
         
-        config.d = self.d_spinbox.value()
-        config.sigma_color = self.sigma_color_spinbox.value()
-        config.sigma_space = self.sigma_space_spinbox.value()
+        config.nf_d = self.d_spinbox.value()
+        config.nf_sigma_color = self.sigma_color_spinbox.value()
+        config.nf_sigma_space = self.sigma_space_spinbox.value()
 
-        if config.noisefilter_auto == 1 :
+        if config.nf_auto == 1 :
                
-             self.update_image()
+            disp = ImD.ImageDisplay()
+            disp.DispAryData()
 
     def update_gaussian_sigma(self):
 
-        config.sigma_x = self.sigma_x_spinbox.value()
-        config.sigma_y = self.sigma_y_spinbox.value()
+        config.nf_sigma_x = self.sigma_x_spinbox.value()
+        config.nf_sigma_y = self.sigma_y_spinbox.value()
         
-        if config.noisefilter_auto == 1 :
+        if config.nf_auto == 1 :
                
-             self.update_image()
+            disp = ImD.ImageDisplay()
+            disp.DispAryData()
 
     def on_all_checkbox_changed(self, state):    
         
         if state == Qt.Checked:
             
-            config.noisefilter_auto = 1
-
-             
-            self.update_image()
+            config.nf_auto = 1
   
         else:
             
-            config.noisefilter_auto = 0
-
-            config.ZaryData = np.array(config.RawaryData)
+            config.nf_auto = 0
 
         disp = ImD.ImageDisplay()
         disp.DispAryData()
     
+    def on_scar_checkbox_changed(self, state):    
+        
+        if state == Qt.Checked:
+            
+            config.nf_remove_scar_auto = 1
+
+ 
+        else:
+            
+            config.nf_remove_scar_auto = 0
+
+
+        disp = ImD.ImageDisplay()
+        disp.DispAryData()
+
 
     def update_kernek_size(self):
 
-        config.kernel_size = self.kernel_size_spinbox.value()
+        config.nf_kernel_size = self.kernel_size_spinbox.value()
 
         # 偶数値であれば、1を引いた値を使用する
-        if config.kernel_size % 2 == 0:
-            config.kernel_size -= 1
+        if config.nf_kernel_size % 2 == 0:
+            config.nf_kernel_size -= 1
 
-        if config.noisefilter_auto ==1 :
-            self.update_image()
+        if config.nf_auto ==1 :
+            disp = ImD.ImageDisplay()
+            disp.DispAryData()
 
     def update_filter_type(self):
 
-        config.noisefilter_type = self.selector.currentText()
+        config.nf_type = self.selector.currentText()
 
-        if  config.noisefilter_type == "Gaussian":
+        if  config.nf_type == "Gaussian":
             self.sigma_x_label.show()
             self.sigma_x_spinbox.show()
             self.sigma_y_label.show()
@@ -266,7 +308,7 @@ class NoisefilterWindow(QtWidgets.QWidget):
             self.sigma_y_label.hide()
             self.sigma_y_spinbox.hide()
 
-        if  config.noisefilter_type == "Bilateral":
+        if  config.nf_type == "Bilateral":
             self.d_label.show()
             self.d_spinbox.show()
             self.sigma_color_label.show()
@@ -281,9 +323,10 @@ class NoisefilterWindow(QtWidgets.QWidget):
             self.sigma_space_label.hide()
             self.sigma_space_spinbox.hide()
 
-        if config.noisefilter_auto  ==1 :
+        if config.nf_auto  ==1 :
                
-             self.update_image()
+            disp = ImD.ImageDisplay()
+            disp.DispAryData()
 
 
     # def update_image(self):
@@ -327,54 +370,65 @@ class NoisefilterWindow(QtWidgets.QWidget):
     #     disp = ImD.ImageDisplay()
     #     disp.DispAryData()
     
-    def update_image(self):
+    # def update_image(self):
          
-        config.filter_type = self.selector.currentText()
+    #     config.nf_type = self.selector.currentText()
         
-        if config.filter_type == "Average":
-            config.kernel_size = self.kernel_size_spinbox.value()  
+    #     if config.nf_type == "Average":
+    #         config.nf_kernel_size = self.kernel_size_spinbox.value()  
          
-        elif config.filter_type == "Gaussian":
-            config.sigma_x = self.sigma_x_spinbox.value()
-            config.sigma_y = self.sigma_y_spinbox.value()
-            config.kernel_size = self.kernel_size_spinbox.value()      
+    #     elif config.nf_type == "Gaussian":
+    #         config.nf_sigma_x = self.sigma_x_spinbox.value()
+    #         config.nf_sigma_y = self.sigma_y_spinbox.value()
+    #         config.nf_kernel_size = self.kernel_size_spinbox.value()      
            
-        elif config.filter_type == "Median":
-            config.kernel_size = self.kernel_size_spinbox.value()     
+    #     elif config.nf_type == "Median":
+    #         config.nf_kernel_size = self.kernel_size_spinbox.value()     
 
-        elif config.filter_type == "Bilateral":
-            config.sigma_d = self.d_spinbox.value()
-            config.sigma_color = self.sigma_color_spinbox.value()
-            config.sigma_space = self.sigma_space_spinbox.value()
+    #     elif config.nf_type == "Bilateral":
+    #         config.nf_sigma_d = self.d_spinbox.value()
+    #         config.nf_sigma_color = self.sigma_color_spinbox.value()
+    #         config.nf_sigma_space = self.sigma_space_spinbox.value()
 
-        #AutoNoiseFilter()
+    #     #AutoNoiseFilter()
         
-        disp = ImD.ImageDisplay()
-        disp.DispAryData()
+    #     disp = ImD.ImageDisplay()
+    #     disp.DispAryData()
 
+def RemovceScar():
+    """
+        Filter function to remove scars from images.
+        """
+    for y in range(1, config.ZaryData.shape[0] - 1):
+        b = config.ZaryData[y - 1, :]
+        c = config.ZaryData[y, :]
+        a = config.ZaryData[y + 1, :]
+        mask = np.abs(b - a) < config.nf_scar_thresh * (np.abs(c - a))
+        config.ZaryData[y, mask] = b[mask]
+   
 
 def AutoNoiseFilter():
      
-    if config.filter_type == "Average":
+    if config.nf_type == "Average":
         
-        config.ZaryData = cv2.blur(config.RawaryData, ksize=(config.kernel_size , config.kernel_size ))  
+        config.ZaryData = cv2.blur(config.ZaryData, ksize=(config.nf_kernel_size , config.nf_kernel_size ))  
         
-    elif config.filter_type == "Gaussian":
+    elif config.nf_type == "Gaussian":
     
-        config.ZaryData = cv2.GaussianBlur(config.RawaryData, ksize=(config.kernel_size , config.kernel_size ), sigmaX=config.sigma_x, sigmaY=config.sigma_y)
+        config.ZaryData = cv2.GaussianBlur(config.ZaryData, ksize=(config.nf_kernel_size , config.nf_kernel_size ), sigmaX=config.nf_sigma_x, sigmaY=config.nf_sigma_y)
 
-    elif config.filter_type == "Median":
-        arydata_float32 = config.RawaryData.astype(np.float32)
-        config.ZaryData = ndimage.median_filter(arydata_float32, size=config.kernel_size)
+    elif config.nf_type == "Median":
+        arydata_float32 = config.ZaryData.astype(np.float32)
+        config.ZaryData = ndimage.median_filter(arydata_float32, size=config.knf_ernel_size)
         
-    elif config.filter_type == "Bilateral":
+    elif config.nf_type == "Bilateral":
          # データを0から255の範囲に正規化して、uint8形式にキャスト
-        min_val = config.RawaryData.min()
-        max_val = config.RawaryData.max()
-        arydata_uint8 = (((config.RawaryData - min_val) / (max_val - min_val)) * 255).astype(np.uint8)
+        min_val = config.ZaryData.min()
+        max_val = config.ZaryData.max()
+        arydata_uint8 = (((config.ZaryData - min_val) / (max_val - min_val)) * 255).astype(np.uint8)
 
         # バイラテラルフィルターを適用
-        filtered_arydata_uint8 = cv2.bilateralFilter(arydata_uint8,  d=config.sigma_d, sigmaColor=config.sigma_color, sigmaSpace=config.sigma_space)
+        filtered_arydata_uint8 = cv2.bilateralFilter(arydata_uint8,  d=config.nf_sigma_d, sigmaColor=config.nf_sigma_color, sigmaSpace=config.nf_sigma_space)
 
         # uint8形式のデータを元の範囲（float32）に戻す
         config.ZaryData = (filtered_arydata_uint8.astype(np.float32) / 255) * (max_val - min_val) + min_val

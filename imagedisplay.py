@@ -46,13 +46,16 @@ class ImageDisplay:
 
         config.ZaryData = np.array(config.RawaryData)
         
-        if config.rb_plane_auto == 1:
+        if config.rb_plane_type != 0:
             rb.Removebackrgoud_Plane()
 
         if config.rb_line_type != 0:
             rb.Removebackrgoud_Line()
 
-        if config.noisefilter_auto == 1:
+        if config.nf_remove_scar_auto == 1:
+            nf.RemovceScar()
+
+        if config.nf_auto == 1:
             nf.AutoNoiseFilter()
 
         config.aryData = np.array(config.ZaryData) #config.ZaryData
