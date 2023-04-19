@@ -162,13 +162,14 @@ class MainWindow(QMainWindow):
     def crFileControls(self, title):
 
         self.controlsGroup = QGroupBox(title)
+        self.controlsGroup.setFixedWidth(330)
 
         self.txtFolder = QLineEdit()
         self.txtFolder.setStyleSheet("QLineEdit { border: none; background-color: rgb(240,240,240) }")
         self.txtFolder.setReadOnly(1)
         # self.btnFolder = QPushButton("Open")
         # self.btnFolder.clicked.connect(self.show_folder_dialog)
-        self.filesFoundLabel = QLabel()
+        #self.filesFoundLabel = QLabel()
 
         iconSize = QSize(20, 20)
         self.btnFolder = QToolButton()
@@ -182,6 +183,10 @@ class MainWindow(QMainWindow):
         self.filesTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.filesTable.setHorizontalHeaderLabels(("File Name", "Size"))
         self.filesTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        #self.filesTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
+        self.filesTable.resizeColumnToContents(0)
+        self.filesTable.setStyleSheet("font-size: 11pt;")
+        self.filesTable.verticalHeader().setDefaultSectionSize(5)
         self.filesTable.verticalHeader().hide()
         self.filesTable.setShowGrid(True)
         # self.filesTable.cellActivated.connect(self.openHeaderOfFile)
@@ -241,14 +246,12 @@ class MainWindow(QMainWindow):
         self.stopButton.setEnabled(0)
         self.stopButton.clicked.connect(self.movie_stop)
 
-        PlaybackLabel = QLabel("x play :")
-        self.playbackSpinBox = QSpinBox()
-        self.playbackSpinBox.setRange(1, 100)
-        self.playbackSpinBox.setSingleStep(1)
-        self.playbackSpinBox.setValue(config.pbSpeed)
-        # self.frameSpinBox.setEnabled(1)
-        # self.playbackSpinBox.setEnabled(0)
-        self.playbackSpinBox.valueChanged.connect(self.Set_pbSpeed)
+        # PlaybackLabel = QLabel("x play :")
+        # self.playbackSpinBox = QSpinBox()
+        # self.playbackSpinBox.setRange(1, 100)
+        # self.playbackSpinBox.setSingleStep(1)
+        # self.playbackSpinBox.setValue(config.pbSpeed)
+        # self.playbackSpinBox.valueChanged.connect(self.Set_pbSpeed)
 
         self.pbar = QProgressBar()
         self.pbar.setTextVisible(False)
@@ -262,33 +265,33 @@ class MainWindow(QMainWindow):
         # hb3.addWidget(tFrameLabel)
         # hb3.addWidget(self.tframeLineEdit)
 
-        hb2 = QHBoxLayout()
-        hb2.addWidget(self.playButton)
-        hb2.addWidget(self.stopButton)
-        hb2.addWidget(PlaybackLabel)
-        hb2.addWidget(self.playbackSpinBox)
+        #hb2 = QHBoxLayout()
+        #hb2.addWidget(self.playButton)
+        #hb2.addWidget(self.stopButton)
+        #hb2.addWidget(PlaybackLabel)
+        #hb2.addWidget(self.playbackSpinBox)
 
         layout = QGridLayout()
+        
         layout.addLayout(hb1, 0, 0, 1, 4)
-        layout.addWidget(self.filesTable, 1, 0, 1, 4)
-        layout.addWidget(self.filesFoundLabel, 2, 0, 1, 4)
-        # layout.addWidget(self.pbar, 3,0)
+        
+        layout.addWidget(self.filesFoundLabel, 1, 0, 1, 4)
+        
+        layout.addWidget(self.filesTable, 2, 0, 1, 4)
+        
         layout.addWidget(cFrameLabel, 3, 0)
         layout.addWidget(self.frameSpinBox, 3, 1)
         layout.addWidget(self.dispmodeCheck, 3, 2)
 
-        # layout.setVerticalSpacing(15)
         layout.addWidget(self.frameSlider, 4, 0, 1, 4)
 
-        # layout.addLayout(hb3,5,0, 1,1)
         layout.addWidget(tFrameLabel, 5, 0)
         layout.addWidget(self.tframeLineEdit, 5, 1)
 
-        layout.addLayout(hb2, 6, 0, 1, 1)
+        #layout.addLayout(hb2, 6, 0, 1, 1)
 
-        layout.addWidget(self.pbar, 8, 0, 1, 4)
-        # layout.addStretch()
-        # self.setLayout(layout)
+        #layout.addWidget(self.pbar, 8, 0, 1, 4)
+        
         self.controlsGroup.setLayout(layout)
 
     def crParamControls(self, title):
@@ -400,7 +403,13 @@ class MainWindow(QMainWindow):
 
         if dirname:
             self.dirname = dirname.replace('/', os.sep)  # ディレクトリの区切りをOSに合わせて変換しておく
-            self.txtFolder.setText(self.dirname)
+
+            # "/"で分割し、最後の2つまでの要素だけを取得する
+            folders = dirname.split("/")[-2:]
+            # "/"で結合して、新しい文字列を作成する
+            new_dirname = "/".join(folders)
+
+            self.txtFolder.setText(new_dirname)
             # self.btnExec.setEnabled(True)
             self.step = 0
 
